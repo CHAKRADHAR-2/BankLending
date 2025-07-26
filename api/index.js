@@ -2,18 +2,17 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const Database = require('./database');
-const LoanService = require('./services/loanService');
+const Database = require('../database');
+const LoanService = require('../services/loanService');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
 // Serve static files from public directory
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Initialize database and services
 const db = new Database();
@@ -142,18 +141,16 @@ app.get('/api/health', (req, res) => {
 
 // Serve main page
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
-// For local development
-if (require.main === module) {
-    app.listen(PORT, () => {
-        console.log(`Bank Lending System running on port ${PORT}`);
-        console.log(`Web Interface: http://localhost:${PORT}`);
-        console.log(`API Health check: http://localhost:${PORT}/api/health`);
-        console.log('Database initialized successfully');
-    });
-}
+// Handle all routes
+app.all('*', (req, res) => {
+    if (req.path.startsWith('/api/')) {
+        res.status(404).json({ error: 'API endpoint not found' });
+    } else {
+        res.sendFile(path.join(__dirname, '../public', 'index.html'));
+    }
+});
 
-// Export for Vercel
 module.exports = app;
