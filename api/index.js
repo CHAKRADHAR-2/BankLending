@@ -2,8 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const Database = require('../database');
-const LoanService = require('../services/loanService');
+const MemoryDatabase = require('../database-memory');
+const LoanService = require('../services/loanService-memory');
 
 const app = express();
 
@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Initialize database and services
-const db = new Database();
+const db = new MemoryDatabase();
 const loanService = new LoanService(db);
 
 // Initialize database tables
