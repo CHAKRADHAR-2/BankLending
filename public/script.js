@@ -98,26 +98,33 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             const result = await apiCall('/lend', 'POST', data);
+            const loanData = result.data;
+            
+            // Calculate additional fields for display
+            const totalInterest = loanData.loan_amount * (loanData.interest_rate / 100) * loanData.loan_period;
+            const totalAmount = loanData.loan_amount + totalInterest;
+            const totalMonths = loanData.loan_period * 12;
+            const monthlyEMI = totalAmount / totalMonths;
             
             const resultHTML = `
                 <h3><i class="fas fa-check-circle"></i> Loan Created Successfully!</h3>
                 <div class="loan-details">
-                    <p><strong>Loan ID:</strong> ${result.loan_id}</p>
-                    <p><strong>Customer ID:</strong> ${result.customer_id}</p>
-                    <p><strong>Principal Amount:</strong> ${formatCurrency(result.principal_amount)}</p>
-                    <p><strong>Loan Period:</strong> ${result.loan_period_years} years</p>
-                    <p><strong>Interest Rate:</strong> ${result.interest_rate}%</p>
-                    <p><strong>Total Interest:</strong> ${formatCurrency(result.total_interest)}</p>
-                    <p><strong>Total Amount:</strong> ${formatCurrency(result.total_amount)}</p>
-                    <p><strong>Monthly EMI:</strong> ${formatCurrency(result.monthly_emi)}</p>
-                    <p><strong>Total EMIs:</strong> ${result.total_emis}</p>
+                    <p><strong>Loan ID:</strong> ${loanData.loan_id}</p>
+                    <p><strong>Customer ID:</strong> ${loanData.customer_id}</p>
+                    <p><strong>Principal Amount:</strong> ${formatCurrency(loanData.loan_amount)}</p>
+                    <p><strong>Loan Period:</strong> ${loanData.loan_period} years</p>
+                    <p><strong>Interest Rate:</strong> ${loanData.interest_rate}%</p>
+                    <p><strong>Total Interest:</strong> ${formatCurrency(totalInterest)}</p>
+                    <p><strong>Total Amount:</strong> ${formatCurrency(totalAmount)}</p>
+                    <p><strong>Monthly EMI:</strong> ${formatCurrency(monthlyEMI)}</p>
+                    <p><strong>Total EMIs:</strong> ${totalMonths}</p>
                 </div>
                 <div class="calculation-breakdown">
                     <h4>Calculation Breakdown:</h4>
                     <ul>
-                        <li>Interest = ${formatCurrency(result.principal_amount)} × ${result.loan_period_years} × ${result.interest_rate}% = ${formatCurrency(result.total_interest)}</li>
-                        <li>Total Amount = ${formatCurrency(result.principal_amount)} + ${formatCurrency(result.total_interest)} = ${formatCurrency(result.total_amount)}</li>
-                        <li>Monthly EMI = ${formatCurrency(result.total_amount)} ÷ ${result.total_emis} = ${formatCurrency(result.monthly_emi)}</li>
+                        <li>Interest = ${formatCurrency(loanData.loan_amount)} × ${loanData.loan_period} × ${loanData.interest_rate}% = ${formatCurrency(totalInterest)}</li>
+                        <li>Total Amount = ${formatCurrency(loanData.loan_amount)} + ${formatCurrency(totalInterest)} = ${formatCurrency(totalAmount)}</li>
+                        <li>Monthly EMI = ${formatCurrency(totalAmount)} ÷ ${totalMonths} = ${formatCurrency(monthlyEMI)}</li>
                     </ul>
                 </div>
             `;
@@ -148,25 +155,19 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             const result = await apiCall('/payment', 'POST', data);
+            const paymentData = result.data;
             
             const resultHTML = `
                 <h3><i class="fas fa-check-circle"></i> Payment Processed Successfully!</h3>
                 <div class="payment-details">
-                    <p><strong>Transaction ID:</strong> ${result.transaction_id}</p>
-                    <p><strong>Loan ID:</strong> ${result.loan_id}</p>
-                    <p><strong>Payment Amount:</strong> ${formatCurrency(result.payment_amount)}</p>
-                    <p><strong>Payment Type:</strong> ${result.payment_type}</p>
-                    <p><strong>Balance Before:</strong> ${formatCurrency(result.balance_before)}</p>
-                    <p><strong>Balance After:</strong> ${formatCurrency(result.balance_after)}</p>
-                    <p><strong>EMIs Remaining:</strong> ${result.emis_remaining}</p>
-                    <p><strong>Loan Status:</strong> <span class="status-${result.loan_status.toLowerCase()}">${result.loan_status}</span></p>
+                    <p><strong>Payment ID:</strong> ${paymentData.payment_id}</p>
+                    <p><strong>Loan ID:</strong> ${paymentData.loan_id}</p>
+                    <p><strong>Payment Amount:</strong> ${formatCurrency(paymentData.payment_amount)}</p>
+                    <p><strong>Payment Type:</strong> ${paymentData.payment_type}</p>
+                    <p><strong>Remaining Balance:</strong> ${formatCurrency(paymentData.remaining_balance)}</p>
+                    <p><strong>Loan Status:</strong> <span class="status-${paymentData.loan_status.toLowerCase()}">${paymentData.loan_status}</span></p>
+                    <p><strong>Payment Date:</strong> ${formatDate(paymentData.payment_date)}</p>
                 </div>
-                ${result.payment_type === 'LUMP_SUM' ? `
-                <div class="emi-reduction">
-                    <h4>EMI Reduction Calculation:</h4>
-                    <p>EMIs Reduced: ${formatCurrency(result.payment_amount)} ÷ Monthly EMI = ${Math.floor(result.payment_amount / (result.balance_before - result.balance_after + result.payment_amount) * result.emis_remaining / result.balance_after)} EMIs</p>
-                </div>
-                ` : ''}
             `;
             
             showResult('paymentResult', resultHTML);
@@ -191,22 +192,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const loanId = formData.get('loan_id');
             
             const result = await apiCall(`/ledger/${loanId}`);
+            const ledgerData = result.data;
             
             let transactionsHTML = '';
-            if (result.transactions && result.transactions.length > 0) {
-                transactionsHTML = result.transactions.map(transaction => `
+            if (ledgerData.payment_history && ledgerData.payment_history.length > 0) {
+                transactionsHTML = ledgerData.payment_history.map(payment => `
                     <tr>
-                        <td>${transaction.transaction_id.substring(0, 8)}...</td>
-                        <td>${formatCurrency(transaction.payment_amount)}</td>
-                        <td><span class="payment-type-${transaction.payment_type.toLowerCase()}">${transaction.payment_type}</span></td>
-                        <td>${formatDate(transaction.transaction_date)}</td>
-                        <td>${formatCurrency(transaction.balance_before)}</td>
-                        <td>${formatCurrency(transaction.balance_after)}</td>
-                        <td>${transaction.emis_remaining_after}</td>
+                        <td>${payment.payment_id.substring(0, 8)}...</td>
+                        <td>${formatCurrency(payment.payment_amount)}</td>
+                        <td><span class="payment-type-${payment.payment_type.toLowerCase()}">${payment.payment_type}</span></td>
+                        <td>${formatDate(payment.payment_date)}</td>
                     </tr>
                 `).join('');
             } else {
-                transactionsHTML = '<tr><td colspan="7" class="text-center">No transactions found</td></tr>';
+                transactionsHTML = '<tr><td colspan="4" class="text-center">No transactions found</td></tr>';
             }
             
             const resultHTML = `
@@ -215,35 +214,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="summary-grid">
                         <div class="summary-item">
                             <h4>Loan Details</h4>
-                            <p><strong>Loan ID:</strong> ${result.loan_id}</p>
-                            <p><strong>Customer ID:</strong> ${result.customer_id}</p>
-                            <p><strong>Principal:</strong> ${formatCurrency(result.loan_details.principal_amount)}</p>
-                            <p><strong>Total Amount:</strong> ${formatCurrency(result.loan_details.total_amount)}</p>
-                            <p><strong>Monthly EMI:</strong> ${formatCurrency(result.loan_details.monthly_emi)}</p>
-                            <p><strong>Status:</strong> <span class="status-${result.loan_details.loan_status.toLowerCase()}">${result.loan_details.loan_status}</span></p>
+                            <p><strong>Loan ID:</strong> ${ledgerData.loan_details.loan_id}</p>
+                            <p><strong>Customer ID:</strong> ${ledgerData.loan_details.customer_id}</p>
+                            <p><strong>Original Amount:</strong> ${formatCurrency(ledgerData.loan_details.original_amount)}</p>
+                            <p><strong>Interest Rate:</strong> ${ledgerData.loan_details.interest_rate}%</p>
+                            <p><strong>Loan Period:</strong> ${ledgerData.loan_details.loan_period} years</p>
+                            <p><strong>Status:</strong> <span class="status-${ledgerData.loan_details.status.toLowerCase()}">${ledgerData.loan_details.status}</span></p>
                         </div>
                         <div class="summary-item">
-                            <h4>Current Status</h4>
-                            <p><strong>Balance Amount:</strong> ${formatCurrency(result.current_status.balance_amount)}</p>
-                            <p><strong>Amount Paid:</strong> ${formatCurrency(result.current_status.amount_paid)}</p>
-                            <p><strong>EMIs Paid:</strong> ${result.current_status.emis_paid}</p>
-                            <p><strong>EMIs Remaining:</strong> ${result.current_status.emis_remaining}</p>
-                            <p><strong>Progress:</strong> ${Math.round((result.current_status.emis_paid / (result.current_status.emis_paid + result.current_status.emis_remaining)) * 100)}%</p>
+                            <h4>Payment Summary</h4>
+                            <p><strong>Total Paid:</strong> ${formatCurrency(ledgerData.summary.total_paid)}</p>
+                            <p><strong>Outstanding Balance:</strong> ${formatCurrency(ledgerData.summary.outstanding_balance)}</p>
+                            <p><strong>Number of Payments:</strong> ${ledgerData.summary.number_of_payments}</p>
                         </div>
                     </div>
                 </div>
                 <div class="transactions-table">
-                    <h4>Transaction History</h4>
+                    <h4>Payment History</h4>
                     <table>
                         <thead>
                             <tr>
-                                <th>Transaction ID</th>
+                                <th>Payment ID</th>
                                 <th>Amount</th>
                                 <th>Type</th>
                                 <th>Date</th>
-                                <th>Balance Before</th>
-                                <th>Balance After</th>
-                                <th>EMIs Remaining</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -274,82 +268,80 @@ document.addEventListener('DOMContentLoaded', function() {
             const customerId = formData.get('customer_id');
             
             const result = await apiCall(`/account/${customerId}`);
+            const accountData = result.data;
             
             let loansHTML = '';
-            if (result.loans && result.loans.length > 0) {
-                loansHTML = result.loans.map(loan => `
-                    <div class="loan-card">
-                        <div class="loan-header">
-                            <h4>Loan ID: ${loan.loan_id.substring(0, 8)}...</h4>
-                            <span class="status-badge status-${loan.loan_status.toLowerCase()}">${loan.loan_status}</span>
+            if (accountData.loans && accountData.loans.length > 0) {
+                loansHTML = accountData.loans.map(loan => {
+                    const totalPaid = loan.loan_amount - loan.outstanding_balance;
+                    const progressPercent = Math.round((totalPaid / loan.loan_amount) * 100);
+                    
+                    return `
+                        <div class="loan-card">
+                            <div class="loan-header">
+                                <h4>Loan ID: ${loan.loan_id.substring(0, 8)}...</h4>
+                                <span class="status-badge status-${loan.status.toLowerCase()}">${loan.status}</span>
+                            </div>
+                            <div class="loan-details-grid">
+                                <div class="detail-item">
+                                    <span class="label">Loan Amount:</span>
+                                    <span class="value">${formatCurrency(loan.loan_amount)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="label">Interest Rate:</span>
+                                    <span class="value">${loan.interest_rate}%</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="label">Loan Period:</span>
+                                    <span class="value">${loan.loan_period} years</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="label">Amount Paid:</span>
+                                    <span class="value">${formatCurrency(loan.total_paid)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="label">Outstanding Balance:</span>
+                                    <span class="value">${formatCurrency(loan.outstanding_balance)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="label">Payments Made:</span>
+                                    <span class="value">${loan.number_of_payments}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="label">Created:</span>
+                                    <span class="value">${formatDate(loan.created_at)}</span>
+                                </div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                            </div>
+                            <div class="progress-text">${progressPercent}% Paid</div>
                         </div>
-                        <div class="loan-details-grid">
-                            <div class="detail-item">
-                                <span class="label">Principal:</span>
-                                <span class="value">${formatCurrency(loan.principal_amount)}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="label">Total Amount:</span>
-                                <span class="value">${formatCurrency(loan.total_amount)}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="label">Monthly EMI:</span>
-                                <span class="value">${formatCurrency(loan.monthly_emi)}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="label">Amount Paid:</span>
-                                <span class="value">${formatCurrency(loan.amount_paid)}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="label">Balance:</span>
-                                <span class="value">${formatCurrency(loan.balance_amount)}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="label">EMIs Paid:</span>
-                                <span class="value">${loan.emis_paid}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="label">EMIs Remaining:</span>
-                                <span class="value">${loan.emis_remaining}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="label">Created:</span>
-                                <span class="value">${formatDate(loan.created_at)}</span>
-                            </div>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${Math.round((loan.emis_paid / (loan.emis_paid + loan.emis_remaining)) * 100)}%"></div>
-                        </div>
-                        <div class="progress-text">${Math.round((loan.emis_paid / (loan.emis_paid + loan.emis_remaining)) * 100)}% Complete</div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } else {
                 loansHTML = '<div class="no-loans">No loans found for this customer.</div>';
             }
             
             const resultHTML = `
-                <h3><i class="fas fa-user"></i> Account Overview - ${result.customer_id}</h3>
+                <h3><i class="fas fa-user"></i> Account Overview - ${accountData.customer_id}</h3>
                 <div class="account-summary">
                     <div class="summary-stats">
                         <div class="stat-item">
-                            <div class="stat-value">${result.total_loans}</div>
+                            <div class="stat-value">${accountData.summary.total_loans}</div>
                             <div class="stat-label">Total Loans</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value">${formatCurrency(result.summary.total_principal)}</div>
-                            <div class="stat-label">Total Principal</div>
+                            <div class="stat-value">${formatCurrency(accountData.summary.total_outstanding)}</div>
+                            <div class="stat-label">Total Outstanding</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value">${formatCurrency(result.summary.total_amount)}</div>
-                            <div class="stat-label">Total Amount</div>
+                            <div class="stat-value">${accountData.summary.active_loans}</div>
+                            <div class="stat-label">Active Loans</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value">${formatCurrency(result.summary.total_paid)}</div>
-                            <div class="stat-label">Total Paid</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${formatCurrency(result.summary.total_balance)}</div>
-                            <div class="stat-label">Total Balance</div>
+                            <div class="stat-value">${accountData.summary.paid_loans}</div>
+                            <div class="stat-label">Paid Loans</div>
                         </div>
                     </div>
                 </div>
