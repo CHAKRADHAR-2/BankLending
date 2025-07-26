@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Lending System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-university"></i> Bank Lending System</h1>
+                <p>Complete RESTful API system for bank lending operations</p>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" onclick="showTab('overview')">
+                <i class="fas fa-home"></i> System Overview
+            </button>
+            <button class="tab-btn" onclick="showTab('lend')">
+                <i class="fas fa-hand-holding-usd"></i> Create Loan
+            </button>
+            <button class="tab-btn" onclick="showTab('payment')">
+                <i class="fas fa-credit-card"></i> Make Payment
+            </button>
+            <button class="tab-btn" onclick="showTab('ledger')">
+                <i class="fas fa-book"></i> Loan Ledger
+            </button>
+            <button class="tab-btn" onclick="showTab('account')">
+                <i class="fas fa-user"></i> Account Overview
+            </button>
+            <button class="tab-btn" onclick="showTab('demo')">
+                <i class="fas fa-play"></i> Live Demo
+            </button>
+        </nav>
+
+        <!-- System Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="overview-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <h3>LEND Function</h3>
+                    <p>Create loans with flexible amounts, periods, and interest rates. Automatic calculation of total amount and monthly EMI.</p>
+                    <div class="feature-details">
+                        <strong>Formula:</strong> I = P × N × R<br>
+                        <strong>Total:</strong> A = P + I<br>
+                        <strong>EMI:</strong> A ÷ (N × 12)
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h3>PAYMENT Function</h3>
+                    <p>Process EMI and lump sum payments. Lump sum payments reduce the number of remaining EMIs.</p>
+                    <div class="feature-details">
+                        <strong>EMI:</strong> Regular monthly payment<br>
+                        <strong>Lump Sum:</strong> Reduces EMI count<br>
+                        <strong>Auto Status:</strong> ACTIVE/CLOSED
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>LEDGER Function</h3>
+                    <p>Complete transaction history for any loan with current balance and EMI details.</p>
+                    <div class="feature-details">
+                        <strong>History:</strong> All transactions<br>
+                        <strong>Balance:</strong> Current amount due<br>
+                        <strong>EMIs:</strong> Paid/Remaining count
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>ACCOUNT OVERVIEW</h3>
+                    <p>View all loans for a customer with comprehensive summaries and totals.</p>
+                    <div class="feature-details">
+                        <strong>Multiple Loans:</strong> All customer loans<br>
+                        <strong>Summaries:</strong> Total amounts<br>
+                        <strong>Status:</strong> Individual loan details
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technology Stack -->
+            <div class="tech-stack">
+                <h2><i class="fas fa-cogs"></i> Technology Stack</h2>
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <i class="fab fa-node-js"></i>
+                        <span>Node.js + Express.js</span>
+                    </div>
+                    <div class="tech-item">
+                        <i class="fas fa-database"></i>
+                        <span>SQLite Database</span>
+                    </div>
+                    <div class="tech-item">
+                        <i class="fas fa-code"></i>
+                        <span>RESTful APIs</span>
+                    </div>
+                    <div class="tech-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Input Validation</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Test Results -->
+            <div class="test-results">
+                <h2><i class="fas fa-check-circle"></i> Live Test Results</h2>
+                <div class="test-grid">
+                    <div class="test-item success">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Health Check: ✅ OK</span>
+                    </div>
+                    <div class="test-item success">
+                        <i class="fas fa-hand-holding-usd"></i>
+                        <span>LEND Function: ✅ PASSED</span>
+                    </div>
+                    <div class="test-item success">
+                        <i class="fas fa-credit-card"></i>
+                        <span>PAYMENT Function: ✅ PASSED</span>
+                    </div>
+                    <div class="test-item success">
+                        <i class="fas fa-book"></i>
+                        <span>LEDGER Function: ✅ PASSED</span>
+                    </div>
+                    <div class="test-item success">
+                        <i class="fas fa-user"></i>
+                        <span>ACCOUNT OVERVIEW: ✅ PASSED</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Loan Tab -->
+        <div id="lend" class="tab-content">
+            <div class="form-section">
+                <h2><i class="fas fa-hand-holding-usd"></i> Create New Loan</h2>
+                <form id="lendForm" class="loan-form">
+                    <div class="form-group">
+                        <label for="customerId">Customer ID:</label>
+                        <input type="text" id="customerId" name="customer_id" required placeholder="e.g., CUST001">
+                    </div>
+                    <div class="form-group">
+                        <label for="loanAmount">Loan Amount (₹):</label>
+                        <input type="number" id="loanAmount" name="loan_amount" required placeholder="e.g., 100000" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="loanPeriod">Loan Period (Years):</label>
+                        <input type="number" id="loanPeriod" name="loan_period" required placeholder="e.g., 2" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="interestRate">Interest Rate (%):</label>
+                        <input type="number" id="interestRate" name="interest_rate" required placeholder="e.g., 10" min="0" step="0.1">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-calculator"></i> Create Loan
+                    </button>
+                </form>
+                <div id="lendResult" class="result-section"></div>
+            </div>
+
+            <!-- Calculation Example -->
+            <div class="calculation-example">
+                <h3><i class="fas fa-calculator"></i> Calculation Example</h3>
+                <div class="calc-details">
+                    <p><strong>Example:</strong> ₹100,000 loan for 2 years at 10% interest</p>
+                    <ul>
+                        <li><strong>Interest (I):</strong> 100,000 × 2 × 0.10 = ₹20,000</li>
+                        <li><strong>Total Amount (A):</strong> 100,000 + 20,000 = ₹120,000</li>
+                        <li><strong>Monthly EMI:</strong> 120,000 ÷ 24 = ₹5,000</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Make Payment Tab -->
+        <div id="payment" class="tab-content">
+            <div class="form-section">
+                <h2><i class="fas fa-credit-card"></i> Make Loan Payment</h2>
+                <form id="paymentForm" class="loan-form">
+                    <div class="form-group">
+                        <label for="paymentLoanId">Loan ID:</label>
+                        <input type="text" id="paymentLoanId" name="loan_id" required placeholder="Enter loan ID">
+                    </div>
+                    <div class="form-group">
+                        <label for="paymentAmount">Payment Amount (₹):</label>
+                        <input type="number" id="paymentAmount" name="payment_amount" required placeholder="e.g., 5000" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="paymentType">Payment Type:</label>
+                        <select id="paymentType" name="payment_type" required>
+                            <option value="EMI">EMI (Regular Monthly Payment)</option>
+                            <option value="LUMP_SUM">Lump Sum (Reduces EMI Count)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-money-bill-wave"></i> Make Payment
+                    </button>
+                </form>
+                <div id="paymentResult" class="result-section"></div>
+            </div>
+
+            <!-- Payment Types Info -->
+            <div class="payment-info">
+                <h3><i class="fas fa-info-circle"></i> Payment Types</h3>
+                <div class="payment-types">
+                    <div class="payment-type">
+                        <h4><i class="fas fa-calendar-alt"></i> EMI Payment</h4>
+                        <p>Regular monthly payment that reduces the remaining EMI count by 1.</p>
+                    </div>
+                    <div class="payment-type">
+                        <h4><i class="fas fa-hand-holding-usd"></i> Lump Sum Payment</h4>
+                        <p>Large payment that reduces EMI count based on: Payment Amount ÷ Monthly EMI</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loan Ledger Tab -->
+        <div id="ledger" class="tab-content">
+            <div class="form-section">
+                <h2><i class="fas fa-book"></i> Loan Ledger</h2>
+                <form id="ledgerForm" class="loan-form">
+                    <div class="form-group">
+                        <label for="ledgerLoanId">Loan ID:</label>
+                        <input type="text" id="ledgerLoanId" name="loan_id" required placeholder="Enter loan ID">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Get Ledger
+                    </button>
+                </form>
+                <div id="ledgerResult" class="result-section"></div>
+            </div>
+        </div>
+
+        <!-- Account Overview Tab -->
+        <div id="account" class="tab-content">
+            <div class="form-section">
+                <h2><i class="fas fa-user"></i> Account Overview</h2>
+                <form id="accountForm" class="loan-form">
+                    <div class="form-group">
+                        <label for="accountCustomerId">Customer ID:</label>
+                        <input type="text" id="accountCustomerId" name="customer_id" required placeholder="e.g., CUST001">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Get Account Overview
+                    </button>
+                </form>
+                <div id="accountResult" class="result-section"></div>
+            </div>
+        </div>
+
+        <!-- Live Demo Tab -->
+        <div id="demo" class="tab-content">
+            <div class="demo-section">
+                <h2><i class="fas fa-play"></i> Live Demo Results</h2>
+                
+                <div class="demo-result">
+                    <h3><i class="fas fa-heartbeat"></i> 1. Health Check</h3>
+                    <div class="code-block">
+                        <strong>GET /api/health</strong>
+                        <pre>{"status":"OK","timestamp":"2025-07-26T07:15:21.845Z"}</pre>
+                    </div>
+                </div>
+
+                <div class="demo-result">
+                    <h3><i class="fas fa-hand-holding-usd"></i> 2. Create Loan (LEND)</h3>
+                    <div class="code-block">
+                        <strong>POST /api/lend</strong>
+                        <pre>{
+  "loan_id": "56bd976c-1a55-4adb-8fc3-2a7407132ade",
+  "customer_id": "CUST001",
+  "principal_amount": 100000,
+  "loan_period_years": 2,
+  "interest_rate": 10,
+  "total_interest": 20000,
+  "total_amount": 120000,
+  "monthly_emi": 5000,
+  "total_emis": 24,
+  "message": "Loan created successfully"
+}</pre>
+                    </div>
+                    <div class="calculation-verify">
+                        <strong>✅ Calculation Verification:</strong>
+                        <ul>
+                            <li>Expected Interest: 20,000 ✅ Actual: 20,000</li>
+                            <li>Expected Total: 120,000 ✅ Actual: 120,000</li>
+                            <li>Expected EMI: 5,000 ✅ Actual: 5,000</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="demo-result">
+                    <h3><i class="fas fa-credit-card"></i> 3. EMI Payment</h3>
+                    <div class="code-block">
+                        <strong>POST /api/payment</strong>
+                        <pre>{
+  "transaction_id": "fe7a88cd-5195-40b4-8d05-9c0ff18c7d75",
+  "payment_amount": 5000,
+  "payment_type": "EMI",
+  "balance_before": 120000,
+  "balance_after": 115000,
+  "emis_remaining": 23,
+  "loan_status": "ACTIVE"
+}</pre>
+                    </div>
+                </div>
+
+                <div class="demo-result">
+                    <h3><i class="fas fa-hand-holding-usd"></i> 4. Lump Sum Payment</h3>
+                    <div class="code-block">
+                        <strong>POST /api/payment</strong>
+                        <pre>{
+  "transaction_id": "6c5866ca-c493-4f07-a410-6e51ebe10234",
+  "payment_amount": 15000,
+  "payment_type": "LUMP_SUM",
+  "balance_before": 115000,
+  "balance_after": 100000,
+  "emis_remaining": 20,
+  "loan_status": "ACTIVE"
+}</pre>
+                    </div>
+                    <div class="calculation-verify">
+                        <strong>✅ EMI Reduction:</strong> 15,000 ÷ 5,000 = 3 EMIs reduced (23 → 20)
+                    </div>
+                </div>
+
+                <div class="demo-result">
+                    <h3><i class="fas fa-book"></i> 5. Loan Ledger</h3>
+                    <div class="code-block">
+                        <strong>GET /api/ledger/{loan_id}</strong>
+                        <pre>{
+  "current_status": {
+    "balance_amount": 100000,
+    "amount_paid": 20000,
+    "emis_paid": 4,
+    "emis_remaining": 20
+  },
+  "transactions": [
+    {
+      "payment_amount": 5000,
+      "payment_type": "EMI",
+      "balance_before": 120000,
+      "balance_after": 115000
+    },
+    {
+      "payment_amount": 15000,
+      "payment_type": "LUMP_SUM",
+      "balance_before": 115000,
+      "balance_after": 100000
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+
+                <div class="demo-result">
+                    <h3><i class="fas fa-user"></i> 6. Account Overview</h3>
+                    <div class="code-block">
+                        <strong>GET /api/account/{customer_id}</strong>
+                        <pre>{
+  "customer_id": "CUST001",
+  "total_loans": 4,
+  "summary": {
+    "total_principal": 300000,
+    "total_amount": 352000,
+    "total_paid": 40000,
+    "total_balance": 312000
+  },
+  "loans": [
+    {
+      "loan_id": "56bd976c-1a55-4adb-8fc3-2a7407132ade",
+      "principal_amount": 100000,
+      "total_amount": 120000,
+      "monthly_emi": 5000,
+      "amount_paid": 20000,
+      "balance_amount": 100000,
+      "emis_paid": 4,
+      "emis_remaining": 20,
+      "loan_status": "ACTIVE"
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p><i class="fas fa-university"></i> Bank Lending System - Complete RESTful API Implementation</p>
+                <p>Server Status: <span id="serverStatus" class="status-indicator">🟢 Running on port 3000</span></p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
